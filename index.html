@@ -231,9 +231,116 @@
       display: none !important;
     }
 
+
+    /* =========================================================================
+       ENTRY INITIALIZATION SPLASH LOADER
+       ========================================================================= */
+    #app-entry-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 99999999;
+      background-color: #070707;
+      background-image: radial-gradient(circle at 50% 40%, #111622 0%, #070707 72%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 2rem 2.5rem;
+      box-sizing: border-box;
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: var(--font-mono);
+      color: #f2f2f2;
+    }
+
+    #app-entry-splash.splash-hidden {
+      opacity: 0;
+      transform: scale(1.02);
+      pointer-events: none;
+    }
+
+    .splash-terminal-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      animation: fadeIn 0.2s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
   </style>
 </head>
 <body class="p-4 md:p-8 max-w-7xl mx-auto">
+
+  <!-- =====================================================================
+       0. CINEMATIC CLINICAL ENTRY / INITIALIZATION SPLASH
+       ===================================================================== -->
+  <div id="app-entry-splash">
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between text-xs text-[#737373] border-b border-[#1c1c1c] pb-3.5">
+      <div class="flex items-center gap-3">
+        <span class="w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping"></span>
+        <span class="text-[#d1d1d1] font-semibold tracking-wider uppercase font-mono">SYNTHO-OMICS NEURAL CORE v2.4</span>
+        <span class="text-[#333333]">|</span>
+        <span class="hidden sm:inline">AMRITA SCHOOL OF COMPUTING • GROUP 12</span>
+      </div>
+      <button onclick="dismissSplash()" class="text-[11px] px-3 py-1 rounded bg-[#131313] hover:bg-[#1e1e1e] text-[#a3a3a3] hover:text-white border border-[#262626] transition flex items-center gap-1.5 cursor-pointer">
+        <span>Skip Loading</span>
+        <span>&rarr;</span>
+      </button>
+    </div>
+
+    <!-- Center Stage: Holographic Scanner & Live Terminal -->
+    <div class="max-w-2xl w-full mx-auto space-y-6 my-auto">
+      
+      <!-- Genomic Node Animation Icon -->
+      <div class="flex items-center justify-center">
+        <div class="relative w-20 h-20 flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full border border-sky-500/25 animate-spin" style="animation-duration: 7s;"></div>
+          <div class="absolute inset-2 rounded-full border border-sky-400/20 border-dashed animate-spin" style="animation-duration: 11s; animation-direction: reverse;"></div>
+          <div class="w-11 h-11 rounded-xl bg-[#0f141d] border border-sky-500/50 flex items-center justify-center text-sky-400 shadow-lg shadow-sky-500/20">
+            <svg class="w-6 h-6 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Title & Status -->
+      <div class="text-center space-y-1">
+        <h1 class="text-base sm:text-lg font-bold tracking-tight text-[#f2f2f2]">INITIALIZING EXPLAINABLE MULTI-OMICS CORE</h1>
+        <p class="text-xs text-sky-400 font-mono" id="splash-status-text">Bootstrapping high-dimensional genomic pipeline...</p>
+      </div>
+
+      <!-- Progress Bar & Percentage -->
+      <div class="space-y-2">
+        <div class="flex justify-between text-xs text-[#737373]">
+          <span id="splash-sub-text">Calibrating system parameters</span>
+          <span id="splash-percent" class="text-sky-400 font-semibold font-mono">0%</span>
+        </div>
+        <div class="w-full h-1.5 bg-[#141414] rounded-full overflow-hidden border border-[#222222]">
+          <div id="splash-progress-bar" class="h-full bg-gradient-to-r from-sky-500 via-cyan-400 to-sky-400 transition-all duration-200 rounded-full" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Live Terminal Console Log -->
+      <div class="elevated-box p-3.5 bg-[#0b0e14] border border-[#1b2230] rounded-xl h-40 overflow-hidden flex flex-col justify-end text-[11px] leading-relaxed font-mono">
+        <div id="splash-terminal-log" class="space-y-1 text-[#737373]">
+          <div class="text-[#525252]">&gt; [KERNEL] System boot initiated (x86_64-genomics)...</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Metadata -->
+    <div class="flex flex-wrap items-center justify-between text-[11px] text-[#525252] border-t border-[#1a1a1a] pt-3">
+      <div>Explainable Multi-Omics Framework for Genetic Syndrome Prediction</div>
+      <div>Assembly: GRCh38.p14 • Model: L1-RBF-SVM • XAI: SHAP Game Theory</div>
+    </div>
+  </div>
+
 
   <!-- =====================================================================
        1. CLINICAL HEADER & METADATA BAR
@@ -2110,6 +2217,86 @@
       mechJumpToStep(1);
       renderGallery('all');
     });
+
+    // =========================================================================
+    // CLINICAL SPLASH BOOT SEQUENCE CONTROLLER
+    // =========================================================================
+    const BOOT_STEPS = [
+      { p: 15, tag: "IO-GEO", text: "Mounting Affymetrix HG-U133 Plus 2.0 transcriptomic reference arrays...", sub: "Loading Gene Expression Omnibus cohorts (N=791)" },
+      { p: 32, tag: "RMA-NORM", text: "Executing RMA probe background correction & quantile normalization...", sub: "54,675 transcript probe sets normalized" },
+      { p: 52, tag: "COMBAT-BAYES", text: "Calibrating ComBat Empirical Bayes location/scale harmonization kernels...", sub: "Neutralizing inter-hospital technical batch variance" },
+      { p: 68, tag: "L1-LASSO", text: "Selecting sparse biomarkers (APP, DYRK1A, TBX1, COMT, XIST, SHOX)...", sub: "Coordinate descent soft-thresholding (lambda = 0.08)" },
+      { p: 84, tag: "SVM-KERNEL", text: "Configuring Dual-Space Support Vector Machine (RBF reproducing Hilbert kernel)...", sub: "Optimal margin hyperplane separation calibrated" },
+      { p: 94, tag: "XAI-SHAP", text: "Computing Shapley Additive Explanations (SHAP) coalitional game theory mesh...", sub: "Global beeswarm & local patient waterfall ready" },
+      { p: 100, tag: "CORE-READY", text: "System Online • 97.4% ROC-AUC Operational • Launching Platform", sub: "Ready for clinical diagnostic decision support" }
+    ];
+
+    let splashTimer = null;
+    let splashStepIdx = 0;
+
+    function runSplashSequence() {
+      const splash = document.getElementById('app-entry-splash');
+      if (!splash) return;
+      splash.classList.remove('splash-hidden');
+      splash.style.display = 'flex';
+
+      const pBar = document.getElementById('splash-progress-bar');
+      const pPercent = document.getElementById('splash-percent');
+      const sText = document.getElementById('splash-status-text');
+      const subText = document.getElementById('splash-sub-text');
+      const term = document.getElementById('splash-terminal-log');
+
+      splashStepIdx = 0;
+      if (term) term.innerHTML = `<div class="text-[#525252]">&gt; [KERNEL] System boot initiated (x86_64-genomics)...</div>`;
+
+      function nextStep() {
+        if (splashStepIdx >= BOOT_STEPS.length) {
+          setTimeout(dismissSplash, 400);
+          return;
+        }
+
+        const step = BOOT_STEPS[splashStepIdx];
+        if (pBar) pBar.style.width = `${step.p}%`;
+        if (pPercent) pPercent.innerText = `${step.p}%`;
+        if (sText) sText.innerText = step.text;
+        if (subText) subText.innerText = step.sub;
+
+        if (term) {
+          const div = document.createElement('div');
+          div.className = 'splash-terminal-line';
+          div.innerHTML = `<span class="text-sky-400 font-semibold">[${step.tag}]</span> <span class="text-[#d1d1d1]">${step.text}</span> <span class="text-emerald-400 font-bold ml-auto">&#10003;</span>`;
+          term.appendChild(div);
+          term.scrollTop = term.scrollHeight;
+        }
+
+        splashStepIdx++;
+        const delay = splashStepIdx === BOOT_STEPS.length ? 500 : 320;
+        splashTimer = setTimeout(nextStep, delay);
+      }
+
+      splashTimer = setTimeout(nextStep, 250);
+    }
+
+    function dismissSplash() {
+      if (splashTimer) clearTimeout(splashTimer);
+      const splash = document.getElementById('app-entry-splash');
+      if (splash) {
+        splash.classList.add('splash-hidden');
+        setTimeout(() => {
+          splash.style.display = 'none';
+        }, 700);
+      }
+    }
+
+    function replaySplash() {
+      runSplashSequence();
+    }
+
+    // Auto-launch splash on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      runSplashSequence();
+    });
+
   </script>
 </body>
 </html>
